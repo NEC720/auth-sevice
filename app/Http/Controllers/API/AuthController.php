@@ -292,7 +292,7 @@ class AuthController extends Controller
 
                 // Débogage ou traitement des informations utilisateur
                 // dd($userInfo);
-                return $this->handleProviderCallback($userInfo);
+                return $this->handleProviderCallback($userInfo, 'Google');
             } else {
                 // Gérer le cas où le token n'est pas retourné
                 dd('Token d\'accès non reçu.');
@@ -388,7 +388,7 @@ class AuthController extends Controller
                 // dd($body, $userInfo, $emails, $primaryEmail, $userIportantInfos);
 
                 // Traitez les informations utilisateur
-                return $this->handleProviderCallback($userIportantInfos);
+                return $this->handleProviderCallback($userIportantInfos, 'GitHub');
             } else {
                 // Gérer le cas où le token n'est pas retourné
                 dd('Token d\'accès non reçu.');
@@ -424,10 +424,10 @@ class AuthController extends Controller
     public function handleLinkedInCallback()
     {
         $user = Socialite::driver('linkedin')->user();
-        return $this->handleProviderCallback($user);
+        return $this->handleProviderCallback($user, 'LinkedIn');
     }
 
-    protected function handleProviderCallback($socialUser)
+    protected function handleProviderCallback($socialUser, $provider)
     {
         $user = User::where('email', $socialUser['email'])->first();
 
@@ -437,6 +437,7 @@ class AuthController extends Controller
                 'email' => $socialUser['email'],
                 'email_verified_at' => now(),
                 'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
+                'provider' => $provider,
             ]);
         }
 
