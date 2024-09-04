@@ -4,18 +4,22 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\CustomVerifyEmail;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Notifications\Notifiable;
 
 class AuthController extends Controller
 {
+    use Notifiable;
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -34,14 +38,24 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Envoi de l'email de vérification
+        // $user->sendEmailVerificationNotification();
+        // $token = JWTAuth::getToken();
+        // $tokenString = $token ? $token->get() : null;
+
+        // Envoyer la notification avec le token JWT
+        
         $token = JWTAuth::fromUser($user);
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
 
+        // Envoyer la notification de vérification d'email
+        $user->notify(new CustomVerifyEmail());
+
         return response()->json([
             'status' => 'success',
-            'message' => 'User created successfully',
+            'message' => 'User created successfully. Please check your email to verify your account.',
             'user' => $user,
             'authorisation' => [
                 'token' => $token,
@@ -49,6 +63,52 @@ class AuthController extends Controller
             ]
         ], 201);
     }
+
+    public function testUser()
+    {
+        $nec = DB::select("SELECT * FROM users WHERE email ='necjunana@gmail.com'");
+        dd($nec);
+    }
+
+    // public function register(Request $request)
+    // {
+    //     // Validation des données
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:6|confirmed',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
+
+    //     // Création de l'utilisateur
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => Hash::make($request->password),
+    //     ]);
+
+    //     // Envoi de l'email de vérification
+    //     $user->sendEmailVerificationNotification();
+
+    //     // Génération du token JWT
+    //     $token = JWTAuth::fromUser($user);
+    //     $hashedToken = Hash::make($token);
+    //     $user->api_token = $hashedToken;
+    //     $user->save();
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'User created successfully. Please check your email to verify your account.',
+    //         'user' => $user,
+    //         'authorisation' => [
+    //             'token' => $token,
+    //             'type' => 'bearer',
+    //         ]
+    //     ], 201);
+    // }
 
     public function login(Request $request)
     {

@@ -3,13 +3,18 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Notifications\CustomVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -55,6 +60,24 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    // public function sendEmailVerificationNotification()
+    // {
+    //     // $this->notify(new CustomVerifyEmail());
+
+    //     // Obtenez le token JWT de l'utilisateur connecté
+    //     $token = JWTAuth::getToken();
+    //     $tokenString = $token ? $token->get() : null;
+
+    //     // Envoyer la notification avec le token JWT
+    //     $this->notify(new CustomVerifyEmail($tokenString));
+    // }
+
+    public function testUser()
+    {
+        $nec = DB::select("SELECT * FROM users WHERE email ='necjunana@gmail.com'");
+        dd($nec);
     }
 
 }

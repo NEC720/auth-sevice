@@ -59,6 +59,11 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
+    'api_url' => env('API_URL', 'http://localhost:8001/api'),
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173/'),
+
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
