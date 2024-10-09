@@ -20,31 +20,34 @@ use Illuminate\Notifications\Notifiable;
 class AuthController extends Controller
 {
     use Notifiable;
+
     public function register(Request $request)
     {
+        // Valider les champs du formulaire d'inscription
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'required|string|max:15|unique:users', // validation simple pour le téléphone
+            'adresse' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
+        // Création de l'utilisateur
         $user = User::create([
             'name' => $request->name,
+            'first_name' => $request->first_name,
             'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->adresse,
             'password' => Hash::make($request->password),
         ]);
 
-        // Envoi de l'email de vérification
-        // $user->sendEmailVerificationNotification();
-        // $token = JWTAuth::getToken();
-        // $tokenString = $token ? $token->get() : null;
-
-        // Envoyer la notification avec le token JWT
-        
+        // Générer et stocker le token JWT
         $token = JWTAuth::fromUser($user);
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
@@ -63,6 +66,52 @@ class AuthController extends Controller
             ]
         ], 201);
     }
+
+
+    // public function register(Request $request)
+    // {
+    //     dd($request, $request->all());
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:6|confirmed',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
+
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => Hash::make($request->password),
+    //     ]);
+
+    //     // Envoi de l'email de vérification
+    //     // $user->sendEmailVerificationNotification();
+    //     // $token = JWTAuth::getToken();
+    //     // $tokenString = $token ? $token->get() : null;
+
+    //     // Envoyer la notification avec le token JWT
+        
+    //     $token = JWTAuth::fromUser($user);
+    //     $hashedToken = Hash::make($token);
+    //     $user->api_token = $hashedToken;
+    //     $user->save();
+
+    //     // Envoyer la notification de vérification d'email
+    //     $user->notify(new CustomVerifyEmail());
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'User created successfully. Please check your email to verify your account.',
+    //         'user' => $user,
+    //         'authorisation' => [
+    //             'token' => $token,
+    //             'type' => 'bearer',
+    //         ]
+    //     ], 201);
+    // }
 
     public function testUser()
     {
@@ -357,6 +406,7 @@ class AuthController extends Controller
 
                 // Décodage de la réponse JSON
                 $userInfo = json_decode($userResponse->getBody(), true);
+                // dd($userInfo);
 
                 // Récupérer les emails de l'utilisateur
                 $emailResponse = $client->get('https://api.github.com/user/emails', [
@@ -377,6 +427,7 @@ class AuthController extends Controller
                     $userIportantInfos = array(
                         'name' => $userInfo['login'],
                         'email' => $primaryEmail,
+                        'picture' => $userInfo['avatar_url'],
                         'github_id' => $userInfo['id'],
                         'github_token' => $body->access_token,
                         // 'github_refresh_token' => $body->refresh_token,
@@ -432,13 +483,27 @@ class AuthController extends Controller
         $user = User::where('email', $socialUser['email'])->first();
 
         if (!$user) {
-            $user = User::create([
-                'name' => $socialUser['name'],
-                'email' => $socialUser['email'],
-                'email_verified_at' => now(),
-                'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
-                'provider' => $provider,
-            ]);
+            if ($provider === 'Google') {
+                $user = User::create([
+                    'name' => $socialUser['family_name'],
+                    'first_name' => $socialUser['given_name'],
+                    'email' => $socialUser['email'],
+                    'email_verified_at' => now(),
+                    'picture' => $socialUser['picture'],
+                    'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
+                    'provider' => $provider,
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $socialUser['name'],
+                    'email' => $socialUser['email'],
+                    'email_verified_at' => now(),
+                    'picture' => $socialUser['picture'],
+                    'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
+                    'provider' => $provider,
+                ]);
+            }
+            
         }
 
         // Connecter l'utilisateur

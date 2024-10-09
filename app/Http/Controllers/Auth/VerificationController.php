@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\CustomVerifyEmail;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -68,8 +69,10 @@ class VerificationController extends Controller
             return response()->json(['message' => 'Email already verified.'], 200);
         }
 
-        // Envoyer la notification de vérification de l'email
-        $user->sendEmailVerificationNotification();
+        // Renvoyer la notification de vérification de l'email
+        // $user->sendEmailVerificationNotification();
+        // Envoyer la notification de vérification d'email
+        $user->notify(new CustomVerifyEmail());
 
         return response()->json(['message' => 'Verification email resent.'], 200);
     }
