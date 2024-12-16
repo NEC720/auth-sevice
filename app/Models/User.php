@@ -26,13 +26,18 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     protected $fillable = [
         'name',
         'first_name',
+        'last_name',
         'email',
         'email_verified_at',
         'phone',
-        'phone_verified_at',
+        // 'phone_verified_at',
         'password',
         'address',
-        'picture',
+        'img',
+        'role_id',
+        'provider_id',
+        'plan_id',
+        'storage_used',
         'api_token',
         'provider'
     ];

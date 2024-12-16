@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\VerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -154,3 +155,10 @@ Route::post('validate-token', [AuthController::class, 'validateToken']);
     // Route pour réenvoyer l'email de vérification
     Route::post('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 // });
+
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::post('/users', [UserController::class, 'store']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::put('/user/update', [UserController::class, 'userUpdate']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);

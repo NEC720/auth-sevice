@@ -25,7 +25,7 @@ class AuthController extends Controller
     {
         // Valider les champs du formulaire d'inscription
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'first_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
@@ -39,7 +39,8 @@ class AuthController extends Controller
 
         // Création de l'utilisateur
         $user = User::create([
-            'name' => $request->name,
+            'name' => $request->first_name . ' ' . $request->last_name,
+            'last_name' => $request->name,
             'first_name' => $request->first_name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -484,23 +485,26 @@ class AuthController extends Controller
 
         if (!$user) {
             if ($provider === 'Google') {
+                $provider_id = 1;
                 $user = User::create([
-                    'name' => $socialUser['family_name'],
+                    'last_name' => $socialUser['family_name'],
                     'first_name' => $socialUser['given_name'],
+                    'name' => $socialUser['given_name'] . ' ' . $socialUser['family_name'],
                     'email' => $socialUser['email'],
                     'email_verified_at' => now(),
-                    'picture' => $socialUser['picture'],
+                    'img' => $socialUser['picture'],
                     'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
-                    'provider' => $provider,
+                    'provider_id' => $provider_id,
                 ]);
             } else {
+                $provider_id = $provider === 'GitHub' ? 2 : 3;
                 $user = User::create([
                     'name' => $socialUser['name'],
                     'email' => $socialUser['email'],
                     'email_verified_at' => now(),
-                    'picture' => $socialUser['picture'],
+                    'img' => $socialUser['picture'],
                     'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
-                    'provider' => $provider,
+                    'provider_id' => 2,
                 ]);
             }
             
