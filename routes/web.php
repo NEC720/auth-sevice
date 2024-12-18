@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,3 +30,7 @@ Route::get('callback/github', [AuthController::class, 'handleGitHubCallback']);
 // LinkedIn
 Route::get('redirect/linkedin', [AuthController::class, 'redirectToLinkedIn']);
 Route::get('callback/linkedin', [AuthController::class, 'handleLinkedInCallback']);
+
+Auth::routes(['verify' => true]);
+
+// Route::get('testUser', [AuthController::class, 'testUser']);
