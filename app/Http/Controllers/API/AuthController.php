@@ -30,7 +30,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'required|string|max:15|unique:users', // validation simple pour le téléphone
-            'adresse' => 'required|string|max:255',
+            'adresse' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -44,7 +44,7 @@ class AuthController extends Controller
             'first_name' => $request->first_name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'address' => $request->adresse,
+            // 'address' => $request->adresse,
             'password' => Hash::make($request->password),
             'first_name' => $request->firstName,
             'last_name' => $request->lastName,
@@ -58,7 +58,7 @@ class AuthController extends Controller
         $user->save();
 
         // Envoyer la notification de vérification d'email
-        $user->notify(new CustomVerifyEmail());
+        // $user->notify(new CustomVerifyEmail());
 
         return response()->json([
             'status' => 'success',
