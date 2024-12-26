@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\CustomVerifyEmail;
 use GuzzleHttp\Client;
@@ -29,7 +30,7 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'required|string|max:15|unique:users', // validation simple pour le téléphone
+            'phone' => 'required|string|regex:/^\+?[0-9]{1,4}?[0-9\s\-\(\)]{6,15}$/|unique:users',
             'adresse' => 'nullable|string|max:255',
         ]);
 
@@ -40,7 +41,7 @@ class AuthController extends Controller
         // Création de l'utilisateur
         $user = User::create([
             'name' => $request->first_name . ' ' . $request->last_name,
-            'last_name' => $request->name,
+            'last_name' => $request->last_name,
             'first_name' => $request->first_name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -53,6 +54,12 @@ class AuthController extends Controller
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
+
+        // Attribuer le rôle "client" à l'utilisateur
+        $clientRole = Role::firstOrCreate(['name' => 'client']);
+        if ($clientRole) {
+            $user->roles()->attach($clientRole); // Insérer dans la table pivot
+        }
 
         // Envoyer la notification de vérification d'email
         // $user->notify(new CustomVerifyEmail());
@@ -94,7 +101,7 @@ class AuthController extends Controller
     //     // $tokenString = $token ? $token->get() : null;
 
     //     // Envoyer la notification avec le token JWT
-        
+
     //     $token = JWTAuth::fromUser($user);
     //     $hashedToken = Hash::make($token);
     //     $user->api_token = $hashedToken;
@@ -507,7 +514,6 @@ class AuthController extends Controller
                     'provider_id' => 2,
                 ]);
             }
-            
         }
 
         // Connecter l'utilisateur

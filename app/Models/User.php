@@ -91,4 +91,36 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         dd($nec);
     }
 
+     // Relations
+     public function role()
+     {
+         return $this->belongsTo(Role::class);
+     }
+ 
+    //  public function plan()
+    //  {
+    //      return $this->belongsTo(Plan::class);
+    //  }
+ 
+    //  public function getPlanDetails()
+    //  {
+    //      return $this->plan()->first();
+    //  }
+ 
+ 
+    //  public function provider()
+    //  {
+    //      return $this->belongsTo(Provider::class);
+    //  }
+ 
+     public function roles()
+     {
+         return $this->belongsToMany(Role::class, 'role_user');
+     }
+ 
+    //  public function cybers()
+    //  {
+    //      return $this->belongsToMany(Cyber::class, 'cyber_user');
+    //  }
+
 }
