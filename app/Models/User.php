@@ -19,14 +19,28 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
+        'img',
         'name',
-        'email',
-        'password',
-        'api_token',
         'last_name',
         'first_name',
         'phone',
+        'role_id',
+        'email',
+        'employee_id',
+        'email_verified_at',
+        'password',
+        'api_token',
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class)->withDefault(); // Utilise un modèle par défaut si l'ID n'est pas présent
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -58,5 +72,4 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
-
 }
