@@ -134,7 +134,7 @@ class AuthController extends Controller
          * @var \App\Models\User $user
          */
         $user = Auth::user();
-        dd($user);
+
 
         // Vérification de l'existence d'un ID d'employé
         if (!$user->employee_id ?? null) {
