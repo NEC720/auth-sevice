@@ -99,6 +99,7 @@ Route::get('/', function () {
 
 
 Route::post('login', [AuthController::class, 'login']);
+Route::post('login_employee', [AuthController::class, 'login_employee']);
 Route::post('register', [AuthController::class, 'register']);
 
 Route::middleware('auth.jwt')->group(function () {

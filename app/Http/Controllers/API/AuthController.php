@@ -134,6 +134,15 @@ class AuthController extends Controller
          * @var \App\Models\User $user
          */
         $user = Auth::user();
+        dd($user);
+
+        // Vérification de l'existence d'un ID d'employé
+        if (!$user->employee_id ?? null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized user',
+            ], 403);
+        }
         // Charger les relations de l'utilisateur
         $user->load('employee', 'role');
         $hashedToken = Hash::make($token);
