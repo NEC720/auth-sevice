@@ -20,11 +20,11 @@ COPY . .
 RUN cp -n .env.example .env
 
 # Installation et optimisation de l'application
-RUN composer install --no-interaction --optimize-autoloader --no-dev \
-    && php artisan key:generate \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# RUN composer install --no-interaction --optimize-autoloader --no-dev \
+#     && php artisan key:generate \
+#     && php artisan config:cache \
+#     && php artisan route:cache \
+#     && php artisan view:cache
 
 # Compilation des assets
 RUN npm install \
