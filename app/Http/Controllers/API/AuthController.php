@@ -160,7 +160,7 @@ class AuthController extends Controller
     //         'status' => 'success',
     //         'message' => 'User created successfully. Please check your email to verify your account.',
     //         'user' => $user,
-    //         'authorisation' => [
+    //         'authorisation' => [https://meet.google.com/ejd-oaca-ako
     //             'token' => $token,
     //             'type' => 'bearer',
     //         ]
@@ -196,6 +196,7 @@ class AuthController extends Controller
          * @var \App\Models\User $user
          */
         $user = Auth::user();
+
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
@@ -209,6 +210,56 @@ class AuthController extends Controller
             ]
         ]);
     }
+
+    public function loginAdmin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = Auth::attempt($credentials)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = Auth::user();
+
+        // Vérification si l'utilisateur a un rôle admin
+        $isAdmin = $user->roles()->where('name', 'admin')->exists();
+
+        if (!$isAdmin) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Acces refuse : Seuls les administrateurs peuvent se connecter.',
+            ], 403);
+        }
+
+        $hashedToken = Hash::make($token);
+        $user->api_token = $hashedToken;
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'user' => $user,
+            'authorisation' => [
+                'token' => $token,
+                'type' => 'bearer',
+            ]
+        ]);
+    }
+
 
     public function logout(Request $request)
     {
