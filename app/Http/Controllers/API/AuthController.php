@@ -35,10 +35,6 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'required|string|regex:/^\+?[0-9]{1,4}?[0-9\s\-\(\)]{6,15}$/|unique:users',
             'adresse' => 'nullable|string|max:255',
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:6|confirmed',
             'cyber_id' => 'nullable|numeric',
             'bio' => 'nullable|string',
         ]);
@@ -66,9 +62,6 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'address' => $request->adresse,
             'password' => Hash::make($request->password),
-            'last_name' => $request->last_name,
-            'first_name' => $request->first_name,
-            'phone' => $request->phone,
             'role_id' => $roleId,
             'employee_id' => $employeeId, // Peut être null si pas d'employé
         ]);
@@ -100,50 +93,7 @@ class AuthController extends Controller
     }
 
 
-    // public function register(Request $request)
-    // {
-    //     dd($request, $request->all());
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:6|confirmed',
-    //     ]);
 
-    //     if ($validator->fails()) {
-    //         return response()->json($validator->errors(), 422);
-    //     }
-
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => Hash::make($request->password),
-    //     ]);
-
-    //     // Envoi de l'email de vérification
-    //     // $user->sendEmailVerificationNotification();
-    //     // $token = JWTAuth::getToken();
-    //     // $tokenString = $token ? $token->get() : null;
-
-    //     // Envoyer la notification avec le token JWT
-
-    //     $token = JWTAuth::fromUser($user);
-    //     $hashedToken = Hash::make($token);
-    //     $user->api_token = $hashedToken;
-    //     $user->save();
-
-    //     // Envoyer la notification de vérification d'email
-    //     $user->notify(new CustomVerifyEmail());
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'User created successfully. Please check your email to verify your account.',
-    //         'user' => $user,
-    //         'authorisation' => [
-    //             'token' => $token,
-    //             'type' => 'bearer',
-    //         ]
-    //     ], 201);
-    // }
 
     public function testUser()
     {
@@ -151,83 +101,7 @@ class AuthController extends Controller
         dd($nec);
     }
 
-    // public function register(Request $request)
-    // {
-    //     // Validation des données
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:6|confirmed',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json($validator->errors(), 422);
-    //     }
-
-    //     // Création de l'utilisateur
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => Hash::make($request->password),
-    //     ]);
-
-    //     // Envoi de l'email de vérification
-    //     $user->sendEmailVerificationNotification();
-
-    //     // Génération du token JWT
-    //     $token = JWTAuth::fromUser($user);
-    //     $hashedToken = Hash::make($token);
-    //     $user->api_token = $hashedToken;
-    //     $user->save();
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'User created successfully. Please check your email to verify your account.',
-    //         'user' => $user,
-    //         'authorisation' => [https://meet.google.com/ejd-oaca-ako
-    //             'token' => $token,
-    //             'type' => 'bearer',
-    //         ]
-    //     ], 201);
-    // }
-    // public function registera(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:6|confirmed',
-    //         'firstName' => 'required|string|max:255',
-    //         'lastName' => 'required|string|max:255',
-    //         'phone' => 'nullable|string|max:20',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json($validator->errors(), 422);
-    //     }
-
-    //     $user = User::create([
-    //         'name' => $request->firstName . ' ' . $request->lastName,
-    //         'email' => $request->email,
-    //         'password' => Hash::make($request->password),
-    //         'first_name' => $request->firstName,
-    //         'last_name' => $request->lastName,
-    //         'phone' => $request->phone,
-    //     ]);
-
-    //     $token = JWTAuth::fromUser($user);
-    //     $hashedToken = Hash::make($token);
-    //     $user->api_token = $hashedToken;
-    //     $user->save();
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'User created successfully',
-    //         'user' => $user,
-    //         'authorisation' => [
-    //             'token' => $token,
-    //             'type' => 'bearer',
-    //         ]
-    //     ], 201);
-    // }
+    
     public function login_employee(Request $request)
     {
         $validator = Validator::make($request->all(), [
