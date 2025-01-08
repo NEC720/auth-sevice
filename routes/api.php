@@ -100,7 +100,8 @@ Route::get('/', function () {
 
 
 
-// Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login']);
+Route::post('login_employee', [AuthController::class, 'login_employee']);
 Route::post('register', [AuthController::class, 'register']);
 
 Route::post('login-admin', [AuthController::class, 'loginAdmin']);
