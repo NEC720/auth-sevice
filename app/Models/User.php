@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Notifications\CustomVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
+use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,7 +18,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, CanResetPassword;
 
     /**
      * The attributes that are mass assignable.
@@ -43,7 +45,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'api_token',
         'provider'
     ];
-       
+
     public function employee()
     {
         return $this->belongsTo(Employee::class)->withDefault(); // Utilise un modèle par défaut si l'ID n'est pas présent
@@ -103,36 +105,40 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         dd($nec);
     }
 
-     // Relations
-     public function role()
-     {
-         return $this->belongsTo(Role::class);
-     }
- 
+    // Relations
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
     //  public function plan()
     //  {
     //      return $this->belongsTo(Plan::class);
     //  }
- 
+
     //  public function getPlanDetails()
     //  {
     //      return $this->plan()->first();
     //  }
- 
- 
+
+
     //  public function provider()
     //  {
     //      return $this->belongsTo(Provider::class);
     //  }
- 
-     public function roles()
-     {
-         return $this->belongsToMany(Role::class, 'role_user');
-     }
- 
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
     //  public function cybers()
     //  {
     //      return $this->belongsToMany(Cyber::class, 'cyber_user');
     //  }
 
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
 }

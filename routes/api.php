@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerificationController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -115,6 +118,30 @@ Route::middleware('auth.jwt')->group(function () {
 
 Route::post('verifytoken', [AuthController::class, 'verifyToken']);
 Route::post('validate-token', [AuthController::class, 'validateToken']);
+
+
+
+Route::post('/password/forgot', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+Route::post('/password/reset', [ResetPasswordController::class, 'reset']);
+
+Route::get('/password/reset-email/{token}', function ($token) {
+    // Vérifie si le token est valide et récupère l'utilisateur associé
+    $user = Password::getUserByToken($token);
+
+    // Si l'utilisateur n'est pas trouvé, renvoyez une erreur
+    if (!$user) {
+        return response()->json(['error' => 'Token invalide ou expiré'], 400);
+    }
+
+    // Si l'utilisateur est trouvé, renvoyez son email
+    return response()->json(['email' => $user->email]);
+});
+
+
+
+
+
+
 // Route::post('validate-token', [AuthController::class, 'AuthController@validateToken']);
 
 // Route::post('register', [AuthController::class, 'register']); // vérifiée
