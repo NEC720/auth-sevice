@@ -118,4 +118,22 @@ return [
 
     'password_timeout' => 10800,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Multi-Factor Authentication (MFA) Configuration
+    |--------------------------------------------------------------------------
+    |
+    | In this section, you can define the settings related to Multi-Factor 
+    | Authentication (MFA). For example, the `code_expiration` key specifies 
+    | the validity duration of the MFA code in minutes. Once this time has 
+    | elapsed, the code will expire, and a new one will need to be generated 
+    | for authentication. By default, the expiration is set to 5 minutes.
+    |
+    */
+
+    'mfa' => [
+        'code_expiration' => 5, // minutes
+    ],
+
+
 ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Mail\MfaCodeMail;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\CustomVerifyEmail;
@@ -18,6 +19,7 @@ use Laravel\Socialite\Facades\Socialite;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -91,16 +93,13 @@ class AuthController extends Controller
         ], 201);
     }
 
-
-
-
     public function testUser()
     {
         $nec = DB::select("SELECT * FROM users WHERE email ='necjunana@gmail.com'");
         dd($nec);
     }
 
-    
+
     public function login_employee(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -177,8 +176,6 @@ class AuthController extends Controller
         ]);
     }
 
-
-
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -229,39 +226,58 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-
+    
         $credentials = $request->only('email', 'password');
-
+    
+        // Tentative d'authentification avec les credentials fournis
         if (!$token = Auth::attempt($credentials)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
             ], 401);
         }
-
+    
         /**
          * @var \App\Models\User $user
          */
         $user = Auth::user();
-
+    
         // Vérification si l'utilisateur a un rôle admin
         $isAdmin = $user->roles()->where('name', 'admin')->exists();
-
+    
         if (!$isAdmin) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Acces refuse : Seuls les administrateurs peuvent se connecter.',
+                'message' => 'Accès refusé : Seuls les administrateurs peuvent se connecter.',
             ], 403);
         }
-
+    
+        // Vérification du champ mfa_required
+        if ($user->mfa_required) {
+            // Générer un code MFA
+            $mfaCode = rand(100000, 999999);
+            $user->mfa_code = $mfaCode;
+            $user->mfa_expires_at = now()->addMinutes(10);
+            $user->save();
+    
+            // Envoyer le code MFA par email
+            Mail::to($user->email)->send(new MfaCodeMail($mfaCode));
+    
+            return response()->json([
+                'mfa_required' => true,
+                'message' => 'Code MFA généré et envoyé par email.',
+            ]);
+        }
+    
+        // Hachage du token d'authentification pour l'API (si MFA non requis)
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
-
+    
         return response()->json([
             'status' => 'success',
             'user' => $user,
@@ -271,7 +287,7 @@ class AuthController extends Controller
             ]
         ]);
     }
-
+    
 
     public function logout(Request $request)
     {

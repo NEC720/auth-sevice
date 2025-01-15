@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\MFAController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -192,3 +193,7 @@ Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::put('/user/update', [UserController::class, 'userUpdate']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+
+Route::post('/mfa/generate', [MFAController::class, 'generateMfaCode']);
+Route::post('/mfa/verify', [MFAController::class, 'verifyMFA']);

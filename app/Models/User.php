@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Notifications\CustomVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use Carbon\Carbon;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Str;
+
 
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
@@ -43,7 +46,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'plan_id',
         'storage_used',
         'api_token',
-        'provider'
+        'provider',
+        'mfa_code', 
+        'mfa_expires_at', 
+        'mfa_verified_at',
     ];
 
     public function employee()
@@ -141,4 +147,14 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         $this->notify(new ResetPasswordNotification($token));
     }
+
+
+    public function generateMfaCode()
+    {
+        $this->mfa_code = Str::random(6); // Génère un code aléatoire de 6 caractères
+        $this->mfa_expires_at = Carbon::now()->addMinutes(5); // Expiration dans 5 minutes
+        $this->save();
+    }
+
+
 }
