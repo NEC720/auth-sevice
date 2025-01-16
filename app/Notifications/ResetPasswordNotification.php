@@ -40,9 +40,11 @@ class ResetPasswordNotification extends Notification
     
         return (new MailMessage)
                     ->subject('Réinitialisation du mot de passe')
+                    ->greeting('Bonjour!')
                     ->line('Vous avez demandé une réinitialisation de mot de passe.')
                     ->action('Changer le mot de passe', $url)
-                    ->line('Si vous n\'avez pas fait cette demande, aucune action supplémentaire n\'est requise.');
+                    ->line('Si vous n\'avez pas fait cette demande, aucune action supplémentaire n\'est requise.')
+                    ->salutation('Cordialement, L\'équipe de IT Training Hub');
     }
     
 

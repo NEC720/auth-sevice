@@ -40,32 +40,7 @@ class MFAController extends Controller
                 'token' => $token,
                 'type' => 'bearer',
             ]
-            // 'access_token' => $token,
-            // 'token_type' => 'Bearer'
         ]);
     }
-        /**
-     * Génère un code MFA pour un utilisateur
-     */
-    // public function generateMfaCode(Request $request)
-    // {
-    //     $request->validate([
-    //         'email' => 'required|email',
-    //     ]);
-
-    //     $user = User::where('email', $request->email)->first();
-
-    //     if (!$user) {
-    //         return response()->json(['message' => 'User not found'], 404);
-    //     }
-
-    //     $user->mfa_code = random_int(100000, 999999); // Génère un code aléatoire à 6 chiffres
-
-    //     $user->mfa_expires_at = Carbon::now()->addMinutes(config('auth.mfa.code_expiration'));
-    //     $user->save();
-
-    //     return response()->json([
-    //         'message' => 'MFA code generated'
-    //     ]);
-    // }
+       
 }
