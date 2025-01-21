@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use function Laravel\Prompts\password;
 
 class MFAController extends Controller
 {
@@ -19,6 +21,7 @@ class MFAController extends Controller
         $request->validate([
             'email' => 'required|email',
             'mfa_code' => 'required|numeric',
+            'password' => 'required|string|min:6'
         ]);
     
         $user = User::where('email', $request->email)->first();
@@ -26,9 +29,19 @@ class MFAController extends Controller
         if (!$user || $user->mfa_code !== $request->mfa_code || $user->mfa_expires_at < now()) {
             return response()->json(['message' => 'Code MFA invalide ou expiré.'], 401);
         }
+
+        $credentials = $request->only('email', 'password');
+    
+        // Tentative d'authentification avec les credentials fournis
+        if (!$token = Auth::attempt($credentials)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized',
+            ], 401);
+        }
     
         // Valider le code MFA et générer un token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // $token = $user->createToken('auth_token')->plainTextToken;
         $user->mfa_verified_at = now();
         $user->save();
     
