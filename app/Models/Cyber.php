@@ -10,4 +10,9 @@ class Cyber extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'opening_hours'];
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'cyber_user');
+    }
 }

@@ -47,8 +47,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'storage_used',
         'api_token',
         'provider',
-        'mfa_code', 
-        'mfa_expires_at', 
+        'mfa_code',
+        'mfa_expires_at',
         'mfa_verified_at',
     ];
 
@@ -138,10 +138,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->belongsToMany(Role::class, 'role_user');
     }
 
-    //  public function cybers()
-    //  {
-    //      return $this->belongsToMany(Cyber::class, 'cyber_user');
-    //  }
+    public function cybers()
+    {
+        return $this->belongsToMany(Cyber::class, 'cyber_user');
+    }
 
     public function sendPasswordResetNotification($token)
     {
@@ -155,6 +155,4 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         $this->mfa_expires_at = Carbon::now()->addMinutes(5); // Expiration dans 5 minutes
         $this->save();
     }
-
-
 }

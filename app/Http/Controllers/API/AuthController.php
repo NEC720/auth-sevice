@@ -36,20 +36,9 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'required|string|regex:/^\+?[0-9]{1,4}?[0-9\s\-\(\)]{6,15}$/|unique:users',
             'adresse' => 'nullable|string|max:255',
-            'cyber_id' => 'nullable|numeric',
-            'bio' => 'nullable|string',
         ]);
-
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
-        }
-        $employeeId = null;
-        // Si les informations de l'employé sont fournies, créez l'employé
-        if ($request->has('cyber_id') && $request->has('bio')) {
-            $employee = Employee::create($request->only('cyber_id', 'bio', 'status_id'));
-            $employeeId = $employee->id;
-        } else {
-            $employeeId = null; // Pas d'employé associé
         }
         $roleId = $request->input('role_id', 1);
         // Remplacez 1 par l'ID de votre rôle par défaut
@@ -64,7 +53,6 @@ class AuthController extends Controller
             'address' => $request->adresse,
             'password' => Hash::make($request->password),
             'role_id' => $roleId,
-            'employee_id' => $employeeId, // Peut être null si pas d'employé
         ]);
 
         // Générer et stocker le token JWT
@@ -119,25 +107,38 @@ class AuthController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
-
+        // Récupération de l'utilisateur authentifi
         /**
          * @var \App\Models\User $user
          */
         $user = Auth::user();
 
+        $isAuthorized = $user->roles()->where('name', 'manager')->exists() || $user->roles()->where('name', 'admin')->exists();
 
-        // Vérification de l'existence d'un ID d'employé
-        if (!$user->employee_id ?? null) {
+        if (!$isAuthorized) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized user',
+                'message' => 'Accès refusé : Seuls les managers et les administrateurs peuvent se connecter.',
             ], 403);
         }
-        // Charger les relations de l'utilisateur
-        $user->load('employee', 'role');
+
+        $roles = $user->roles->map(function ($role) {
+            return $role->only(['id', 'name']);
+        });
+
+        $cyber = $user->cybers->first(); // Get the first cyber associated with the user
+
+        if ($cyber) {
+            $cyber = $cyber->only(['id', 'name']); // Return only the necessary attributes
+        }
+        // $cybers = $user->cybers->map(function ($cyber) {
+        //     return $cyber->only(['id', 'name', 'opening_hours']);
+        // });
+
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
+
 
         return response()->json([
             'status' => 'success',
@@ -149,25 +150,8 @@ class AuthController extends Controller
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'employee' => [
-                    'id' => $user->employee->id,
-                    'bio' => $user->employee->bio,
-                    'status' => [
-                        'id' => $user->employee->status->id, // ID du statut
-                        'name' => $user->employee->status->name, // Nom du statut
-                        // Ajoutez d'autres champs que vous souhaitez récupérer
-                    ],
-                    'cyber' => [
-                        'id' => $user->employee->cyber->id, // ID du cyber
-                        'name' => $user->employee->cyber->name, // Nom du cyber
-                        // 'opening_hours' => $user->employee->cyber->opening_hours,
-                        // Ajoutez d'autres champs que vous souhaitez récupérer
-                    ],
-                ],
-                'role' => [
-                    'id' => $user->role->id, // ID du cyber
-                    'name' => $user->role->name, // Nom du cyber
-                ], // Données du rôle
+                'roles' => $roles,
+                'cyber' => $cyber,
             ],
             'authorisation' => [
                 'token' => $token,
@@ -226,13 +210,13 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-    
+
         $credentials = $request->only('email', 'password');
-    
+
         // Tentative d'authentification avec les credentials fournis
         if (!$token = Auth::attempt($credentials)) {
             return response()->json([
@@ -240,22 +224,22 @@ class AuthController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
-    
+
         /**
          * @var \App\Models\User $user
          */
         $user = Auth::user();
-    
+
         // Vérification si l'utilisateur a un rôle admin
         $isAdmin = $user->roles()->where('name', 'admin')->exists();
-    
+
         if (!$isAdmin) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Accès refusé : Seuls les administrateurs peuvent se connecter.',
             ], 403);
         }
-    
+
         // Vérification du champ mfa_required
         if ($user->mfa_required) {
             // Générer un code MFA
@@ -263,21 +247,21 @@ class AuthController extends Controller
             $user->mfa_code = $mfaCode;
             $user->mfa_expires_at = now()->addMinutes(10);
             $user->save();
-    
+
             // Envoyer le code MFA par email
             Mail::to($user->email)->send(new MfaCodeMail($mfaCode));
-    
+
             return response()->json([
                 'mfa_required' => true,
                 'message' => 'Code MFA généré et envoyé par email.',
             ]);
         }
-    
+
         // Hachage du token d'authentification pour l'API (si MFA non requis)
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
-    
+
         return response()->json([
             'status' => 'success',
             'user' => $user,
@@ -287,7 +271,7 @@ class AuthController extends Controller
             ]
         ]);
     }
-    
+
 
     public function logout(Request $request)
     {
