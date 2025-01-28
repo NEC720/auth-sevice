@@ -122,18 +122,25 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $roles = $user->roles->map(function ($role) {
-            return $role->only(['id', 'name']);
-        });
 
+        // Vérification de l'association avec un cyber
         $cyber = $user->cybers->first(); // Get the first cyber associated with the user
+
+        if (!$cyber) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Connexion refusée : votre utilisateur n\'est lié à aucun cyber.',
+            ], 403);
+        }
 
         if ($cyber) {
             $cyber = $cyber->only(['id', 'name']); // Return only the necessary attributes
         }
-        // $cybers = $user->cybers->map(function ($cyber) {
-        //     return $cyber->only(['id', 'name', 'opening_hours']);
-        // });
+
+        $roles = $user->roles->map(function ($role) {
+            return $role->only(['id', 'name']);
+        });
+
 
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
