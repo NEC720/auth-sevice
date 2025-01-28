@@ -37,7 +37,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email_verified_at',
         'phone',
         // 'phone_verified_at',
-        'employee_id',
         'password',
         'address',
         'img',
@@ -51,12 +50,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'mfa_expires_at',
         'mfa_verified_at',
     ];
-
-    public function employee()
-    {
-        return $this->belongsTo(Employee::class)->withDefault(); // Utilise un modèle par défaut si l'ID n'est pas présent
-    }
-
     // public function role()
     // {
     //     return $this->belongsTo(Role::class, 'role_id');
