@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\MFAController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\VisitsController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerificationController;
@@ -102,6 +103,8 @@ Route::get('/', function () {
     ];
 });
 
+
+Route::get('/track-visit', [VisitsController::class, 'getVisitStats']);
 
 
 Route::post('login', [AuthController::class, 'login']);

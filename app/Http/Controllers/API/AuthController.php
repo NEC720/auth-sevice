@@ -8,6 +8,8 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\CustomVerifyEmail;
 use App\Models\Employee;
+use App\Models\Visits;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
@@ -176,17 +178,56 @@ class AuthController extends Controller
         ]);
     }
 
+    // public function login(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|string|email|max:255',
+    //         'password' => 'required|string|min:6',
+    //     ]);
+
+    //     // dd($request->only('email', 'password'));
+    //     // dd($validator->fails());
+    //     // dd($request->all());
+    //     // dd($validator->getData());
+
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
+
+    //     $credentials = $request->only('email', 'password');
+
+    //     if (!$token = Auth::attempt($credentials)) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Unauthorized',
+    //         ], 401);
+    //     }
+
+    //     /**
+    //      * @var \App\Models\User $user
+    //      */
+    //     $user = Auth::user();
+
+    //     $hashedToken = Hash::make($token);
+    //     $user->api_token = $hashedToken;
+    //     $user->save();
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'user' => $user,
+    //         'authorisation' => [
+    //             'token' => $token,
+    //             'type' => 'bearer',
+    //         ]
+    //     ]);
+    // }
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
         ]);
-
-        // dd($request->only('email', 'password'));
-        // dd($validator->fails());
-        // dd($request->all());
-        // dd($validator->getData());
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
@@ -206,6 +247,20 @@ class AuthController extends Controller
          */
         $user = Auth::user();
 
+        // Vérification anti-doublon avec une durée de 5 minutes
+        $existingVisit = Visits::where('ip_address', $request->ip())
+            ->where('user_agent', $request->header('User-Agent'))
+            ->where('created_at', '>=', Carbon::now()->subMinutes(5)->toDateTimeString())
+            ->exists();
+
+        if (!$existingVisit) {
+            Visits::create([
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        }
+
+        // Générer et enregistrer un token hashé
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
@@ -226,13 +281,13 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-    
+
         $credentials = $request->only('email', 'password');
-    
+
         // Tentative d'authentification avec les credentials fournis
         if (!$token = Auth::attempt($credentials)) {
             return response()->json([
@@ -240,22 +295,22 @@ class AuthController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
-    
+
         /**
          * @var \App\Models\User $user
          */
         $user = Auth::user();
-    
+
         // Vérification si l'utilisateur a un rôle admin
         $isAdmin = $user->roles()->where('name', 'admin')->exists();
-    
+
         if (!$isAdmin) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Accès refusé : Seuls les administrateurs peuvent se connecter.',
             ], 403);
         }
-    
+
         // Vérification du champ mfa_required
         if ($user->mfa_required) {
             // Générer un code MFA
@@ -263,21 +318,21 @@ class AuthController extends Controller
             $user->mfa_code = $mfaCode;
             $user->mfa_expires_at = now()->addMinutes(10);
             $user->save();
-    
+
             // Envoyer le code MFA par email
             Mail::to($user->email)->send(new MfaCodeMail($mfaCode));
-    
+
             return response()->json([
                 'mfa_required' => true,
                 'message' => 'Code MFA généré et envoyé par email.',
             ]);
         }
-    
+
         // Hachage du token d'authentification pour l'API (si MFA non requis)
         $hashedToken = Hash::make($token);
         $user->api_token = $hashedToken;
         $user->save();
-    
+
         return response()->json([
             'status' => 'success',
             'user' => $user,
@@ -287,7 +342,7 @@ class AuthController extends Controller
             ]
         ]);
     }
-    
+
 
     public function logout(Request $request)
     {
@@ -617,4 +672,5 @@ class AuthController extends Controller
         //     ]
         // ]);
     }
+
 }
