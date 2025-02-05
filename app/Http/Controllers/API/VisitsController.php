@@ -36,7 +36,7 @@ class VisitsController extends Controller
 
         // Format de réponse
         return response()->json([
-            'title' => 'Total des visites',
+            'title' => "Analyse des visites sur l'application client des 7 derniers jours",
             'color' => '#FF8042',
             'dataKey' => 'visit',
             'chartData' => $chartData,
