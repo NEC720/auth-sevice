@@ -27,8 +27,8 @@ RUN cp -n .env.example .env
 #     && php artisan view:cache
 
 # Compilation des assets
-RUN npm install \
-    && npm run build
+# RUN npm install \
+#     && npm run build
 
 # Changement de propriétaire pour les fichiers
 RUN chown -R application:application .
