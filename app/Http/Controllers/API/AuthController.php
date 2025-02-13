@@ -660,7 +660,7 @@ class AuthController extends Controller
         $user->save();
         // dd($token);
 
-        return redirect()->away(env('FRONTEND_URL') . '/auth/callback?token=' . $token);
+        return redirect()->away(env('VITE_ADMIN_DOSSCOPY_BASE_URL') . '/auth/callback?token=' . $token);
 
         // return response()->json([
         //     'status' => 'success',
