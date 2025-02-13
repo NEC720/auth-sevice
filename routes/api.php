@@ -162,3 +162,7 @@ Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::put('/user/update', [UserController::class, 'userUpdate']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+Route::get('/user-plan-start-date/{id}', [UserController::class, 'getUserPlanStartDate']);
+
+Route::put('/update-plan/{id}', [UserController::class, 'updatePlan']);
