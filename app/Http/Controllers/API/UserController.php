@@ -4,9 +4,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -179,4 +183,66 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Utilisateur supprimé avec succès!']);
     }
+
+    public function getUserPlanStartDate($id)
+    {
+        $user = User::findOrFail($id);
+
+        return response()->json([
+            'plan_started_at' => $user->getFormattedPlanStartDate(),
+        ]);
+    }
+
+    public function updatePlan(Request $request, $id)
+    {
+        try {
+            // Valider la requête
+            $validated = $request->validate([
+                'planId' => 'required|exists:plans,id'
+            ]);
+
+            // Vérifier si l'utilisateur existe
+            $user = User::findOrFail($id);
+
+            // Option 1: Mise à jour simple
+            $user->update([
+                'plan_id' => $validated['planId'],
+                'plan_started_at' => now()
+            ]);
+
+            // Option 2: Si vous voulez conserver un historique des changements de plan
+            DB::table('plan_history')->insert([
+                'user_id' => $user->id,
+                'plan_id' => $validated['planId'],
+                'previous_plan_id' => $user->plan_id,
+                'created_at' => now(),
+            ]);
+
+            // Réponse avec le plan mis à jour
+            return response()->json([
+                'message' => 'Plan mis à jour avec succès',
+                'data' => [
+                    'user' => $user->load('plan'),
+                    'plan_updated_at' => $user->plan_updated_at
+                ]
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Utilisateur non trouvé: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Utilisateur non trouvé'
+            ], 404);
+        } catch (ValidationException $e) {
+            Log::error('Erreur de validation: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Plan invalide',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour du plan: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la mise à jour du plan'
+            ], 500);
+        }
+    }
+
 }

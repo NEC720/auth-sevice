@@ -197,6 +197,10 @@ Route::put('/users/{id}', [UserController::class, 'update']);
 Route::put('/user/update', [UserController::class, 'userUpdate']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
+Route::get('/user-plan-start-date/{id}', [UserController::class, 'getUserPlanStartDate']);
+
+Route::put('/update-plan/{id}', [UserController::class, 'updatePlan']);
+
 
 Route::post('/mfa/generate', [MFAController::class, 'generateMfaCode']);
 Route::post('/mfa/verify', [MFAController::class, 'verifyMFA']);
