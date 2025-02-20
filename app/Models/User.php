@@ -206,5 +206,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         $this->save();
     }
 
+    public function cybers()
+    {
+        return $this->belongsToMany(Cyber::class, 'cyber_user');
+    }
+
+
 
 }
