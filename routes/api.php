@@ -118,6 +118,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::get('check-provider/{userId}', [AuthController::class, 'isUserCreatedByProviderWithDefaultPassword']);
 });
 
 Route::post('verifytoken', [AuthController::class, 'verifyToken']);

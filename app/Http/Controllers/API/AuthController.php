@@ -664,4 +664,16 @@ class AuthController extends Controller
         // ]);
     }
 
+    public function isUserCreatedByProviderWithDefaultPassword($userId)
+    {
+        $user = User::find($userId);
+
+        if (!$user) {
+            return false; // L'utilisateur n'existe pas
+        }
+
+        // Vérifier si l'utilisateur a un provider et s'il a encore le mot de passe par défaut
+        return !is_null($user->provider_id) && Hash::check('1DefaultPassword', $user->password);
+    }
+
 }
