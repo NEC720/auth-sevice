@@ -36,7 +36,7 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $url = env('FRONTEND_URL') . "/reset-password/{$this->token}?email=" . urlencode($notifiable->email);
+        $url = env('VITE_ADMIN_DOSSCOPY_BASE_URL') . "/reset-password/{$this->token}?email=" . urlencode($notifiable->email);
     
         return (new MailMessage)
                     ->subject('Réinitialisation du mot de passe')
