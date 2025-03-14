@@ -11,7 +11,7 @@
         <p>Bonjour,</p>
         <p>Pour sécuriser votre connexion, veuillez utiliser le code suivant :</p>
         <h3 style="font-size: 24px; color: #4CAF50; text-align: center; margin: 20px 0;">{{ $code }}</h3>
-        <p style="text-align: center;">Ce code est valide pendant 10 minutes.</p>
+        <p style="text-align: center;">Ce code est valide pendant 5 minutes.</p>
         <p>Si vous n'avez pas demandé ce code, veuillez ignorer cet email.</p>
         <p style="color: #888;">L'équipe de support.</p>
     </div>
