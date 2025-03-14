@@ -624,7 +624,7 @@ class AuthController extends Controller
                     'email' => $socialUser['email'],
                     'email_verified_at' => now(),
                     'img' => $socialUser['picture'],
-                    'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
+                    // 'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
                     'provider_id' => $provider_id,
                 ]);
             } else {
@@ -634,7 +634,7 @@ class AuthController extends Controller
                     'email' => $socialUser['email'],
                     'email_verified_at' => now(),
                     'img' => $socialUser['picture'],
-                    'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
+                    // 'password' => bcrypt('1DefaultPassword'), // Crée un mot de passe aléatoire 1st with uniqid()
                     'provider_id' => 2,
                 ]);
             }
@@ -672,7 +672,7 @@ class AuthController extends Controller
         }
 
         // Vérifier si l'utilisateur a un provider et s'il a encore le mot de passe par défaut
-        return !is_null($user->provider_id) && Hash::check('1DefaultPassword', $user->password);
+        return !is_null($user->provider_id) && is_null($user->password);
     }
 
 }
