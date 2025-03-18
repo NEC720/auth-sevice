@@ -675,4 +675,30 @@ class AuthController extends Controller
         return !is_null($user->provider_id) && is_null($user->password);
     }
 
+    public function updatePassword(Request $request, $id)
+    {
+        // Valider les données du formulaire
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+    
+        // Trouver l'utilisateur par son ID
+        $user = User::findOrFail($id);
+    
+        // Vérifier si le mot de passe actuel est correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Le mot de passe actuel est incorrect.'], 400);
+        }
+    
+        // Mettre à jour le mot de passe de l'utilisateur
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+    
+        // Retourner une réponse JSON de succès
+        return response()->json([
+            'message' => 'Mot de passe modifié avec succès.'
+        ]);
+    }
+
 }

@@ -205,3 +205,8 @@ Route::put('/update-plan/{id}', [UserController::class, 'updatePlan']);
 
 Route::post('/mfa/generate', [MFAController::class, 'generateMfaCode']);
 Route::post('/mfa/verify', [MFAController::class, 'verifyMFA']);
+
+Route::put('/user/{id}/enable-mfa' , [MFAController::class , 'activateMfa']);
+Route::put('/user/{id}/disable-mfa' , [MFAController::class , 'disableMfa']);
+
+Route::put('/user/{id}/update-password', [AuthController::class, 'updatePassword']);

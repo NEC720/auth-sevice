@@ -55,5 +55,37 @@ class MFAController extends Controller
             ]
         ]);
     }
+
+    public function activateMfa($id)
+    {
+        // Trouver l'utilisateur par son ID
+        $user = User::findOrFail($id);
+    
+        // Mettre à jour le champ 'mfa_required' à true
+        $user->mfa_required = true;
+        $user->save();
+    
+        // Retourner une réponse JSON de succès
+        return response()->json([
+            'message' => 'MFA activée avec succès pour cet utilisateur.',
+            'user' => $user
+        ]);
+    }
+
+    public function disableMfa($id)
+    {
+        // Trouver l'utilisateur par son ID
+        $user = User::findOrFail($id);
+    
+        // Mettre à jour le champ 'mfa_required' à true
+        $user->mfa_required = false;
+        $user->save();
+    
+        // Retourner une réponse JSON de succès
+        return response()->json([
+            'message' => 'MFA désactivé avec succès pour cet utilisateur.',
+            'user' => $user
+        ]);
+    }
        
 }
