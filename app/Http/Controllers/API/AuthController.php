@@ -22,6 +22,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
+use PragmaRX\Google2FA\Google2FA;
 
 class AuthController extends Controller
 {
@@ -301,20 +302,11 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Vérification du champ mfa_required
-        if ($user->mfa_required) {
-            // Générer un code MFA
-            $mfaCode = rand(100000, 999999);
-            $user->mfa_code = $mfaCode;
-            $user->mfa_expires_at = now()->addMinutes(10);
-            $user->save();
-
-            // Envoyer le code MFA par email
-            Mail::to($user->email)->send(new MfaCodeMail($mfaCode));
-
+        // Vérifie si le MFA est activé pour cet utilisateur
+        if ($user->google2fa_enabled) {
             return response()->json([
-                'mfa_required' => true,
-                'message' => 'Code MFA généré et envoyé par email.',
+                'google2fa_enabled' => true,
+                'message' => 'Veuillez entrer votre code MFA'
             ]);
         }
 
@@ -682,22 +674,45 @@ class AuthController extends Controller
             'current_password' => 'required|string',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
-    
+
         // Trouver l'utilisateur par son ID
         $user = User::findOrFail($id);
-    
+
         // Vérifier si le mot de passe actuel est correct
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json(['message' => 'Le mot de passe actuel est incorrect.'], 400);
         }
-    
+
         // Mettre à jour le mot de passe de l'utilisateur
         $user->password = Hash::make($request->new_password);
         $user->save();
-    
+
         // Retourner une réponse JSON de succès
         return response()->json([
             'message' => 'Mot de passe modifié avec succès.'
+        ]);
+    }
+
+        /**
+     * Get user by email.
+     *
+     * @param string $email
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUserByEmail($email)
+    {
+        // Rechercher l'utilisateur par adresse e-mail et charger les relations
+        $user = User::where('email', $email)->with(['roles', 'cybers'])->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Utilisateur non trouvé',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Utilisateur récupéré avec succès',
+            'user' => $user,
         ]);
     }
 
