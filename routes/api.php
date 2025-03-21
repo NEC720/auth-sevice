@@ -216,3 +216,5 @@ Route::put('/user/{id}/update-password', [AuthController::class, 'updatePassword
 Route::get('/user/{id}/mfa-qr-code', [MFAController::class, 'getMFAQRCode']);
 
 Route::get('/user-by-email/{email}', [AuthController::class, 'getUserByEmail']);
+
+Route::get('/genre', [AuthController::class, 'getGender']);

@@ -36,7 +36,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'email',
         'email_verified_at',
         'phone',
-        // 'phone_verified_at',
         'employee_id',
         'password',
         'address',
@@ -47,11 +46,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'storage_used',
         'api_token',
         'provider',
-        // 'mfa_code',
-        // 'mfa_expires_at',
-        'mfa_verified_at',
         'google2fa_secret',
-        'google2fa_enabled'
+        'google2fa_enabled',
+        'gender_id'
     ];
 
     public function employee()
@@ -203,5 +200,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function cybers()
     {
         return $this->belongsToMany(Cyber::class, 'cyber_user');
+    }
+
+    public function gender()
+    {
+        return $this->belongsTo(Gender::class);
     }
 }

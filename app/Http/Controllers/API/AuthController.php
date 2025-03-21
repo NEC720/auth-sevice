@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\CustomVerifyEmail;
 use App\Models\Employee;
+use App\Models\Gender;
 use App\Models\Visits;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -39,13 +40,13 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'required|string|regex:/^\+?[0-9]{1,4}?[0-9\s\-\(\)]{6,15}$/|unique:users',
             'adresse' => 'nullable|string|max:255',
+            'gender_id' => 'nullable|exists:genders,id', // Vérifie si l'ID existe dans la table "genders"
         ]);
+    
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-        $roleId = $request->input('role_id', 1);
-        // Remplacez 1 par l'ID de votre rôle par défaut
-        // $statusId = $request->input('status_id', 13); // Remplacez 1 par l'ID de votre statut par défaut
+    
         // Création de l'utilisateur
         $user = User::create([
             'name' => $request->first_name . ' ' . $request->last_name,
@@ -54,24 +55,21 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->adresse,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'gender_id' => $request->gender_id, // Ajout de gender_id
         ]);
-
+    
         // Générer et stocker le token JWT
         $token = JWTAuth::fromUser($user);
-        $hashedToken = Hash::make($token);
-        $user->api_token = $hashedToken;
+        $user->api_token = Hash::make($token);
         $user->save();
-
+    
         // Attribuer le rôle "client" à l'utilisateur
         $clientRole = Role::firstOrCreate(['name' => 'client']);
         if ($clientRole) {
             $user->roles()->attach($clientRole); // Insérer dans la table pivot
         }
-
-        // Envoyer la notification de vérification d'email
-        // $user->notify(new CustomVerifyEmail());
-
+    
         return response()->json([
             'status' => 'success',
             'message' => 'User created successfully. Please check your email to verify your account.',
@@ -82,6 +80,7 @@ class AuthController extends Controller
             ]
         ], 201);
     }
+    
 
     public function testUser()
     {
@@ -715,5 +714,16 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+
+    public function getGender()
+    {
+        $genders = Gender::select('id', 'name')->orderBy('name')->get();
+    
+        return response()->json([
+            'status' => 'success',
+            'genders' => $genders
+        ]);
+    }
+    
 
 }

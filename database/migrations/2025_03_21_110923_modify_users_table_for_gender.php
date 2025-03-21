@@ -12,10 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('mfa_required')
-                ->default(false)
-                ->after('mfa_verified_at') // Place la colonne après 'mfa_verified_at'
-                ->comment('Indique si MFA est requis pour cet utilisateur');
+            $table->unsignedBigInteger('gender_id')->nullable()->after('phone');
+            $table->foreign('gender_id')->references('id')->on('genders')->onDelete('set null');
         });
     }
 
@@ -24,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('mfa_required');
-        });
+        //
     }
 };
