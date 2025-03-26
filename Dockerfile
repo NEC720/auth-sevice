@@ -33,8 +33,8 @@ RUN cp -n .env.example .env
 # Changement de propriétaire pour les fichiers
 RUN chown -R application:application .
 
-# Expose le port 8001 pour Laravel
-EXPOSE 8001
+# Expose le port 8101 pour Laravel
+EXPOSE 8101
 
 # Démarre le serveur Laravel en parallèle avec Nginx
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=8001 & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=8101 & nginx -g 'daemon off;'"]
