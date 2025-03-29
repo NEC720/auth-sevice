@@ -104,7 +104,7 @@ Route::get('/', function () {
 });
 
 
-Route::get('/track-visit', [VisitsController::class, 'getVisitStats']);
+
 
 
 Route::post('login', [AuthController::class, 'login']);
@@ -119,6 +119,9 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me']);
     Route::get('check-provider/{userId}', [AuthController::class, 'isUserCreatedByProviderWithDefaultPassword']);
+    Route::get('/track-visit', [VisitsController::class, 'getVisitStats']);
+    Route::get('/user-by-email/{email}', [AuthController::class, 'getUserByEmail']);
+    Route::get('/genre', [AuthController::class, 'getGender']);
 });
 
 Route::post('verifytoken', [AuthController::class, 'verifyToken']);
@@ -184,11 +187,11 @@ Route::get('/password/reset-email/{token}', function ($token) {
 // Routes protégées par le middleware d'authentification
 
 // Route::middleware(['auth:api'])->group(function () {
-    // Route pour vérifier l'email
-    Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
+// Route pour vérifier l'email
+Route::get('email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
 
-    // Route pour réenvoyer l'email de vérification
-    Route::post('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
+// Route pour réenvoyer l'email de vérification
+Route::post('email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
 // });
 
 Route::get('/users', [UserController::class, 'index']);
@@ -208,13 +211,9 @@ Route::post('/user/{id}/validate-mfa', [MFAController::class, 'verifyMFA']);
 
 Route::post('/user/{id}/auth-validate-mfa', [MFAController::class, 'authVerifyMFA']);
 
-Route::put('/user/{id}/enable-mfa' , [MFAController::class , 'activateMfa']);
-Route::put('/user/{id}/disable-mfa' , [MFAController::class , 'disableMfa']);
+Route::put('/user/{id}/enable-mfa', [MFAController::class, 'activateMfa']);
+Route::put('/user/{id}/disable-mfa', [MFAController::class, 'disableMfa']);
 
 Route::put('/user/{id}/update-password', [AuthController::class, 'updatePassword']);
 
 Route::get('/user/{id}/mfa-qr-code', [MFAController::class, 'getMFAQRCode']);
-
-Route::get('/user-by-email/{email}', [AuthController::class, 'getUserByEmail']);
-
-Route::get('/genre', [AuthController::class, 'getGender']);
