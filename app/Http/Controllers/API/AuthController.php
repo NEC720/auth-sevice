@@ -63,6 +63,12 @@ class AuthController extends Controller
         $token = JWTAuth::fromUser($user);
         $user->api_token = Hash::make($token);
         $user->save();
+
+        // Récupération dynamique de l'URL frontend
+        $frontendUrl = $request->header('X-Frontend-Url', config('app.frontend_url'));
+
+        // Envoi de la notification avec l'URL dynamique
+        $user->notify(new CustomVerifyEmail($frontendUrl));
     
         // Attribuer le rôle "client" à l'utilisateur
         $clientRole = Role::firstOrCreate(['name' => 'client']);
@@ -236,6 +242,16 @@ class AuthController extends Controller
          * @var \App\Models\User $user
          */
         $user = Auth::user();
+
+        // Vérification de l'email
+        if (!$user->hasVerifiedEmail()) {
+            Auth::logout(); // Déconnexion de l'utilisateur
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Veuillez vérifier votre adresse email avant de vous connecter.',
+                'resend_link' => route('verification.resend') // Optionnel: lien de renvoi
+            ], 403);
+        }
 
         // Vérification anti-doublon avec une durée de 5 minutes
         $existingVisit = Visits::where('ip_address', $request->ip())

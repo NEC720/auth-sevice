@@ -13,12 +13,14 @@ class CustomVerifyEmail extends Notification
 {
     use Queueable;
 
+    protected $frontendUrl;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct($frontendUrl)
     {
-        //
+        $this->frontendUrl = $frontendUrl;
     }
 
     /**
@@ -31,20 +33,36 @@ class CustomVerifyEmail extends Notification
         return ['mail'];
     }
 
+    // protected function verificationUrl($notifiable)
+    // {
+    //     $temporarySignedURL = URL::temporarySignedRoute(
+    //         'verification.verify', // Nom de la route de vérification
+    //         Carbon::now()->addMinutes(60), // Temps d'expiration
+    //         ['id' => $notifiable->getKey(), 'hash' => sha1($notifiable->getEmailForVerification())]
+    //     );
+
+    //     // Remplacement de la partie backend par l'URL frontend
+    //     return str_replace(
+    //         config('app.url') . '/email/verify',
+    //         rtrim($this->frontendUrl, '/') . '/inscription/email-verified?url=' . urlencode($temporarySignedURL),
+    //         $temporarySignedURL
+    //     );
+    // }
+
     /**
      * Get the mail representation of the notification.
      */
     public function toMail(object $notifiable): MailMessage
     {
         // Générer l'URL de vérification personnalisée
-        $verificationUrl = $this->customVerificationUrl($notifiable);
+        // $verificationUrl = $this->customVerificationUrl($notifiable);
         // dd($verificationUrl);
         // Créer le message de notification en utilisant Laravel's MailMessage facade
         return (new MailMessage)
                     ->subject('Confirmez votre adresse email')
                     ->greeting('Bonjour!')
                     ->line('Merci de vous être inscrit. Veuillez cliquer sur le bouton ci-dessous pour vérifier votre adresse email.')
-                    ->action('Confirmer mon email', $verificationUrl)
+                    ->action('Confirmer mon email', $this->customVerificationUrl($notifiable))
                     ->line('Si vous n\'avez pas créé de compte, aucune action n\'est requise.')
                     ->salutation('Cordialement, L\'équipe de ' . config('app.name'));
                     // ->line('The introduction to the notification.')
@@ -69,10 +87,10 @@ class CustomVerifyEmail extends Notification
         // dd($temporarySignedURL);
 
         // Ajouter l'URL du frontend depuis le fichier .env
-        $frontendUrl = config('app.frontend_url');
+        // $frontendUrl = config('app.frontend_url');
 
         // Construire l'URL finale en utilisant l'URL du frontend
-        return $frontendUrl . '/inscription/email-verified?url=' . urlencode($temporarySignedURL);
+        return rtrim($this->frontendUrl, '/') . '/inscription/email-verified?url=' . urlencode($temporarySignedURL);
     }
 
 

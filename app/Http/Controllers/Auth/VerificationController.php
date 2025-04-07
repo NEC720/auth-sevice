@@ -72,7 +72,13 @@ class VerificationController extends Controller
         // Renvoyer la notification de vérification de l'email
         // $user->sendEmailVerificationNotification();
         // Envoyer la notification de vérification d'email
-        $user->notify(new CustomVerifyEmail());
+        // $user->notify(new CustomVerifyEmail());
+        
+        // Récupération dynamique de l'URL frontend
+        $frontendUrl = $request->header('X-Frontend-Url', config('app.frontend_url'));
+
+        // Envoi de la notification avec l'URL dynamique
+        $user->notify(new CustomVerifyEmail($frontendUrl));
 
         return response()->json(['message' => 'Verification email resent.'], 200);
     }
