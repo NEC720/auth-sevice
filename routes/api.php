@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\MFAController;
+use App\Http\Controllers\API\PublicNetworkController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\VisitsController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -122,6 +123,9 @@ Route::middleware('auth.jwt')->group(function () {
     Route::get('/track-visit', [VisitsController::class, 'getVisitStats']);
     Route::get('/user-by-email/{email}', [AuthController::class, 'getUserByEmail']);
     Route::get('/genre', [AuthController::class, 'getGender']);
+    Route::get('/public-networks', [PublicNetworkController::class, 'index']);
+    Route::post('/public-networks', [PublicNetworkController::class, 'store']);
+    Route::delete('/public-networks/{network}', [PublicNetworkController::class, 'destroy']);
 });
 
 Route::post('verifytoken', [AuthController::class, 'verifyToken']);

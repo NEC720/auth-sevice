@@ -211,4 +211,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->roles()->where('name', $role)->exists();
     }
+
+    public function publicNetworks()
+    {
+        return $this->hasMany(PublicNetwork::class);
+    }
 }
