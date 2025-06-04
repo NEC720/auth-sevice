@@ -48,7 +48,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'provider',
         'google2fa_secret',
         'google2fa_enabled',
-        'gender_id'
+        'gender_id',
+        'date_of_birth',
     ];
 
     public function employee()
@@ -85,6 +86,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'plan_started_at' => 'datetime',
+        'date_of_birth' => 'date',
     ];
 
     public function plan()
@@ -215,5 +217,27 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function publicNetworks()
     {
         return $this->hasMany(PublicNetwork::class);
+    }
+
+    /**
+     * Accesseur pour calculer l'âge à partir de la date de naissance
+     */
+    public function getAgeAttribute()
+    {
+        if ($this->date_of_birth) {
+            return $this->date_of_birth->age;
+        }
+        return null;
+    }
+
+    /**
+     * Accesseur pour formater la date de naissance
+     */
+    public function getFormattedDateOfBirthAttribute()
+    {
+        if ($this->date_of_birth) {
+            return $this->date_of_birth->format('d/m/Y');
+        }
+        return null;
     }
 }

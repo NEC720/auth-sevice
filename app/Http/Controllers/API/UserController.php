@@ -84,6 +84,7 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8',
             'phone' => 'nullable|string|max:15|unique:users,phone,' . $id,
             'address' => 'nullable|string|max:255',
+            'date_of_birth' => 'nullable|date|before:today', // Validation pour la date de naissance
         ]);
 
         if ($validator->fails()) {
@@ -122,6 +123,17 @@ class UserController extends Controller
 
         if ($request->filled('password')) {
             $dataToUpdate['password'] = Hash::make($request->password);
+        }
+
+        if ($request->filled('date_of_birth')) {
+            $newDateOfBirth = $request->date_of_birth;
+
+            // Convertir la date de naissance actuelle en format string pour comparaison
+            $currentDateOfBirth = $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : null;
+
+            if ($newDateOfBirth !== $currentDateOfBirth) {
+                $dataToUpdate['date_of_birth'] = $newDateOfBirth;
+            }
         }
 
         if (!empty($dataToUpdate)) {
