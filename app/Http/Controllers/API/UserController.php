@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
+use App\Models\Plan;
 use App\Models\User;
+use App\Services\PlanQuotaService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +17,13 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    private $quotaService;
+
+    public function __construct(PlanQuotaService $quotaService)
+    {
+        $this->quotaService = $quotaService;
+    }
+    
     /**
      * Display a listing of the resource.
      */
@@ -205,37 +215,110 @@ class UserController extends Controller
         ]);
     }
 
+    // public function updatePlan(Request $request, $id)
+    // {
+    //     try {
+    //         // Valider la requête
+    //         $validated = $request->validate([
+    //             'planId' => 'required|exists:plans,id'
+    //         ]);
+
+    //         // Vérifier si l'utilisateur existe
+    //         $user = User::findOrFail($id);
+
+    //         // Option 1: Mise à jour simple
+    //         $user->update([
+    //             'plan_id' => $validated['planId'],
+    //             'plan_started_at' => now()
+    //         ]);
+
+    //         // Option 2: Si vous voulez conserver un historique des changements de plan
+    //         DB::table('plan_history')->insert([
+    //             'user_id' => $user->id,
+    //             'plan_id' => $validated['planId'],
+    //             'previous_plan_id' => $user->plan_id,
+    //             'created_at' => now(),
+    //         ]);
+
+    //         // Réponse avec le plan mis à jour
+    //         return response()->json([
+    //             'message' => 'Plan mis à jour avec succès',
+    //             'data' => [
+    //                 'user' => $user->load('plan'),
+    //                 'plan_updated_at' => $user->plan_updated_at
+    //             ]
+    //         ], 200);
+    //     } catch (ModelNotFoundException $e) {
+    //         Log::error('Utilisateur non trouvé: ' . $e->getMessage());
+    //         return response()->json([
+    //             'message' => 'Utilisateur non trouvé'
+    //         ], 404);
+    //     } catch (ValidationException $e) {
+    //         Log::error('Erreur de validation: ' . $e->getMessage());
+    //         return response()->json([
+    //             'message' => 'Plan invalide',
+    //             'errors' => $e->errors()
+    //         ], 422);
+    //     } catch (\Exception $e) {
+    //         Log::error('Erreur lors de la mise à jour du plan: ' . $e->getMessage());
+    //         return response()->json([
+    //             'message' => 'Une erreur est survenue lors de la mise à jour du plan'
+    //         ], 500);
+    //     }
+    // }
+
+    
     public function updatePlan(Request $request, $id)
     {
         try {
-            // Valider la requête
             $validated = $request->validate([
                 'planId' => 'required|exists:plans,id'
             ]);
 
-            // Vérifier si l'utilisateur existe
             $user = User::findOrFail($id);
+            $currentPlanId = $user->plan_id;
+            $newPlanId = $validated['planId'];
 
-            // Option 1: Mise à jour simple
+            // Récupérer les plans pour comparaison
+            $currentPlan = Plan::find($currentPlanId);
+            $newPlan = Plan::findOrFail($newPlanId);
+
+            $planChangeInfo = [];
+
+            // Détecter le type de changement
+            if ($currentPlan && $newPlan->quota_stockage < $currentPlan->quota_stockage) {
+                // DOWNGRADE
+                $planChangeInfo = $this->quotaService->handleDowngrade($user, $newPlanId);
+                $planChangeInfo['change_type'] = 'downgrade';
+            } elseif ($currentPlan && $newPlan->quota_stockage > $currentPlan->quota_stockage) {
+                // UPGRADE
+                $planChangeInfo = $this->quotaService->handleUpgrade($user, $newPlanId);
+                $planChangeInfo['change_type'] = 'upgrade';
+            } else {
+                // CHANGEMENT LATERAL ou PREMIER PLAN
+                $planChangeInfo['change_type'] = 'lateral';
+            }
+
+            // Mettre à jour le plan
             $user->update([
-                'plan_id' => $validated['planId'],
+                'plan_id' => $newPlanId,
                 'plan_started_at' => now()
             ]);
 
-            // Option 2: Si vous voulez conserver un historique des changements de plan
+            // Historique des changements
             DB::table('plan_history')->insert([
                 'user_id' => $user->id,
-                'plan_id' => $validated['planId'],
-                'previous_plan_id' => $user->plan_id,
+                'plan_id' => $newPlanId,
+                'previous_plan_id' => $currentPlanId,
                 'created_at' => now(),
             ]);
 
-            // Réponse avec le plan mis à jour
             return response()->json([
                 'message' => 'Plan mis à jour avec succès',
                 'data' => [
                     'user' => $user->load('plan'),
-                    'plan_updated_at' => $user->plan_updated_at
+                    'plan_updated_at' => $user->plan_started_at,
+                    'plan_change_info' => $planChangeInfo
                 ]
             ], 200);
         } catch (ModelNotFoundException $e) {
@@ -255,6 +338,28 @@ class UserController extends Controller
                 'message' => 'Une erreur est survenue lors de la mise à jour du plan'
             ], 500);
         }
+    }
+
+    /**
+     * Obtenir le statut de stockage d'un utilisateur
+     */
+    public function getStorageStatus($id)
+    {
+        $user = User::findOrFail($id);
+        $currentStorage = Document::getTotalStorageUsed($id);
+        $archivedFiles = Document::where('user_id', $id)->where('archived', true)->get();
+
+        return response()->json([
+            'current_storage' => $currentStorage,
+            'quota' => $user->plan->quota_stockage,
+            'usage_percentage' => ($currentStorage / $user->plan->quota_stockage) * 100,
+            'archived_files' => [
+                'count' => $archivedFiles->count(),
+                'total_size' => $archivedFiles->sum('file_size'),
+                'glacier_files' => $archivedFiles->where('archive_location', 'GLACIER')->count(),
+                'restoring_files' => $archivedFiles->whereNotNull('restore_requested_at')->count(),
+            ]
+        ]);
     }
 
 }
